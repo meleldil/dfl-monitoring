@@ -8,16 +8,13 @@
 Libraries import
 """
 import sys
-import time
 from datetime import datetime
-import calendar
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import QApplication, QWidget, QToolTip, QDialog, QProgressBar, QPushButton
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QThread
+from PyQt5.QtWidgets import QApplication, QWidget, QToolTip, QProgressBar, QPushButton
 from PyQt5.QtGui import QIcon, QFont
 
 import pandas as pd
-import numpy as np
 import requests
 from bs4 import BeautifulSoup
 
@@ -39,8 +36,9 @@ for i in sozd:
 Thread with Monitoring
 """
 
+
 class PBThread(QThread):
-    def __init__(self, mainwindow, parent=None):
+    def __init__(self, mainwindow):
         super().__init__()
         self.mainwindow = mainwindow
     
@@ -53,14 +51,14 @@ class PBThread(QThread):
             text = page.text
             soup = BeautifulSoup(text, "lxml")
 
-            for event in soup.find_all('span', {'class' : 'hron_date'}):
+            for event in soup.find_all('span', {'class': 'hron_date'}):
                 try:
                     event_date = datetime.strptime(event.text[:10], '%d.%m.%Y').date()
                     if selected_date <= event_date and link not in seek:
                         seek.append(link)
                 except:
                     pass
-            for doc in soup.find_all('a', {'class' : 'a_event_files'}):
+            for doc in soup.find_all('a', {'class': 'a_event_files'}):
                 try:
                     full_title = doc.attrs['title']
                     doc_date = datetime.strptime(full_title[:10], '%d.%m.%Y').date()
@@ -75,12 +73,14 @@ class PBThread(QThread):
             output = pd.DataFrame(seek)
             output.to_excel('output.xlsx')
 
+
 """
 GUI
 """            
             
+
 class PBmainwindow(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self):
         super().__init__()
         
         self.setGeometry(300, 300, 450, 300)
@@ -113,8 +113,8 @@ class PBmainwindow(QWidget):
     def launch(self):
         self.PBThread_instance.start()
         
+
 app = QApplication(sys.argv)
 main = PBmainwindow()
 main.show()
 sys.exit(app.exec_())
-
